@@ -1,0 +1,7 @@
+{
+  "save_cnt": 10,
+  "pose": {
+    "sitting": "sitting_pose",
+    "standing": "standing_pose"
+  }
+}
