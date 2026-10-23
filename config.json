@@ -1,0 +1,10 @@
+{
+  "save_cnt": 200,
+  "pose": {
+    "neck_front": "neck_front_pose",
+    "neck_up": "neck_up_pose",
+    "neck_down": "neck_down_pose",
+    "neck_left": "neck_left_pose",
+    "neck_right": "neck_right_pose"
+  }
+}
