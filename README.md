@@ -117,6 +117,14 @@ In March 2026, I developed a data collection pipeline using a pre-trained YOLOv8
 - Constructed a labeled dataset containing 100 samples across two posture classes.
 - Prepared structured pose data for future rehabilitation exercise classification model development.
 
+## 7. Generated Images
+### Sitting Pose
+<img width="640" height="480" alt="person_20260322_000724_489" src="https://github.com/user-attachments/assets/6e53dc5a-ef69-4043-b405-868094ed196f" />
+
+### Standing Pose
+<img width="640" height="480" alt="person_20260322_000648_306" src="https://github.com/user-attachments/assets/6fbc99dc-1aed-4728-98f0-1229db8c3d88" />
+
+
 </details>
 
 <details>
@@ -236,5 +244,12 @@ In March 2026, I developed a data collection pipeline using a pre-trained YOLOv8
 - 17개 인체 관절 키포인트 추출 및 CSV 저장 자동화
 - 앉기와 서 있기 2개 동작에 대해 총 100개 데이터셋 구축
 - 향후 재활 운동 동작 분류 모델 개발을 위한 구조화된 학습 데이터 준비
+
+## 7. 생성 사진
+### 앉은 자세
+<img width="640" height="480" alt="person_20260322_000724_489" src="https://github.com/user-attachments/assets/6e53dc5a-ef69-4043-b405-868094ed196f" />
+
+### 일어선 자세
+<img width="640" height="480" alt="person_20260322_000648_306" src="https://github.com/user-attachments/assets/6fbc99dc-1aed-4728-98f0-1229db8c3d88" />
 
 </details>
