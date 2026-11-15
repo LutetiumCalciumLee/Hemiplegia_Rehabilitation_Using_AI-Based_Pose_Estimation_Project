@@ -1,459 +1,169 @@
-
 <details>
 <summary>ENG (English Version)</summary>
 
-# Hemiplegia Rehabilitation Using AI-Based Pose Estimation
-
-This project focuses on constructing 2D human pose datasets for future rehabilitation exercise classification for patients with hemiplegia.
-
-The project was developed based on my previous [**Human Pose Estimation Project**](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03), which used YOLOv8 Pose and XGBoost to classify sitting and standing postures.
-
-Building on the pose estimation and data processing techniques explored in that project, I extended their application to rehabilitation exercise dataset construction.
-
-From March to July 2026, I developed and used a data collection pipeline based on the pre-trained YOLOv8n-pose model. The pipeline extracts body keypoints from video frames, stores normalized coordinates, and generates labeled CSV datasets.
-
-Throughout the five-month project, the dataset configuration was updated monthly to cover different rehabilitation exercise categories, including basic postures, neck movements, shoulder movements, arm movements, and left/right oblique postures.
+# Real-Time Pose Recognition for Hemiplegia Rehabilitation Exercises
 
 ## 1. Project Overview
 
-- **Project Period:** March 2026 to July 2026 (5 Months)
-- **Role:** Pose Estimation & Dataset Construction
-- **Purpose:** Construct structured human pose datasets for future rehabilitation exercise classification.
-- **Technologies:** Python, YOLOv8n-pose, OpenCV, Pandas, Tkinter, JSON, CSV
-- **Model:** YOLOv8n-pose (Pre-trained)
-- **Dataset Categories:** 15 movement labels across 5 monthly configurations
-- **Based on:** [Human Pose Estimation: Sitting & Standing Classification](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03)
+This application recognizes **15 poses** from webcam, video, or image input. YOLOv8n-pose detects 17 body keypoints per person, and a Random Forest classifier predicts the pose. The webcam preview displays the detected skeleton and a readable label such as `Arms Overhead` or `Looking Left`.
 
-### Project Background & Development
+The classifier was trained on the combined March–July 2026 dataset. The [main project README](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/main) links to the five monthly data collection branches.
 
-This project was developed based on the experience gained from the previous Human Pose Estimation project.
+## 2. Technology Stack & Processing Pipeline
 
-The previous project implemented:
-- Real-time human pose estimation using YOLOv8 Pose.
-- Extraction of 17 body keypoints from webcam frames.
-- Construction of labeled datasets for sitting and standing postures.
-- Training an XGBoost classifier for posture recognition.
-- Real-time visualization of predicted postures.
+| Component | Technology |
+| --- | --- |
+| Body keypoint detection | Ultralytics YOLOv8n-pose |
+| Data preparation and feature extraction | pandas, NumPy |
+| Pose classifier | scikit-learn Random Forest |
+| Model storage | Joblib |
+| Video input and visualization | OpenCV |
 
-The rehabilitation dataset project extended the application of pose estimation techniques:
-- Applied human pose estimation to rehabilitation exercise data collection.
-- Reused the concepts of keypoint extraction and labeled dataset construction.
-- Configured multiple rehabilitation exercise categories using `config.json`.
-- Generated structured CSV datasets for future exercise classification model development.
+```text
+Training    Monthly CSV files → Chronological split → Feature extraction and augmentation
+            → Random Forest training → Saved classifier
 
+Recognition Webcam / video / image → YOLOv8n-pose → Shared feature extraction
+            → Saved classifier → Pose label and skeleton
+```
 
-## 2. Main Responsibilities
+## 3. Dataset & Model Training
 
-### Pose Estimation
-- Implemented 2D human pose estimation using a pre-trained YOLOv8n-pose model.
-- Extracted 17 body keypoints from video frames.
-- Visualized detected body keypoints and skeleton connections using OpenCV.
-- Developed webcam-based pose data collection functionality.
+The combined dataset contains **2,700 labeled frames** covering sitting, standing, neck movements, shoulder movements, arm movements, and side bends. Each `dataset.csv` contains `image_name`, 34 coordinate columns (`x0`, `y0`, …, `x16`, `y16`), and `label`. The training script reads capture times from filenames such as `person_YYYYMMDD_HHMMSS_mmm.jpg`.
 
-### Data Collection
-- Extracted normalized X and Y coordinates for 17 body keypoints.
-- Processed every third video frame.
-- Applied a detection confidence threshold greater than 0.75.
-- Saved original images and corresponding keypoint coordinates.
-- Implemented configurable data collection limits using `config.json`.
+For each pose within each source CSV, the script uses the first 70% of frames for training and the last 20% for validation. It leaves the middle 10% out to put a gap between the two sets.
 
-### Dataset Construction
-- Organized captured images into posture-specific folders.
-- Assigned movement labels based on image filenames and folder locations.
-- Combined normalized keypoint coordinates with corresponding labels.
-- Generated structured CSV datasets using Pandas.
-- Adapted the data collection configuration for different rehabilitation exercise categories.
+Training and inference share the same preprocessing. When both shoulders are visible, their midpoint and the distance between them define the coordinate system. The classifier receives **51 features** comprising 34 relative coordinate values and 17 indicators of whether each keypoint was detected. Training also includes examples with simulated missing lower-body keypoints and small coordinate errors.
 
-## 3. Monthly Project Development
+## 4. Project Files
 
-The project was organized into five monthly GitHub branches, each focusing on a different set of rehabilitation movements.
+| File | Role |
+| --- | --- |
+| `train_pose.py` | Validates the datasets, trains the classifier, and saves the model and evaluation results |
+| `recognize_pose.py` | Runs inference, displays pose labels, and optionally saves annotated media and JSONL results |
+| `requirements-pose.txt`| Lists the package versions used for training and image inference on Windows with Python 3.13.5 |
+| `pose_common.py` | Provides preprocessing functions imported by both Python scripts |
+| `config.json` | Defines the labels accepted during training |
+| `Models/yolov8n-pose.pt` | Pretrained weights required for keypoint detection |
+| `Models/pose_classifier.joblib` | Pose classifier generated by `train_pose.py` |
 
-| Period | Exercise Category | Classes |
-|---|---|---|
-| March 2026 | Basic Postures | 2 |
-| April 2026 | Neck Movements | 5 |
-| May 2026 | Shoulder Movements | 4 |
-| June 2026 | Arm Movements | 2 |
-| July 2026 | Oblique Postures | 2 | 
+## 5. How to Run
 
+Keep `pose_common.py` alongside both scripts. For training, place `config.json` in the project root and replace the example CSV paths below with your dataset paths.
 
-### [March: Basic Posture Dataset](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/3%28March%29)
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-pose.txt
+.\.venv\Scripts\python.exe train_pose.py --data data/03/dataset.csv data/04/dataset.csv data/05/dataset.csv data/06/dataset.csv data/07/dataset.csv
+```
 
-- Constructed the initial rehabilitation pose estimation and data collection pipeline.
-- Defined `sitting` and `standing` posture classes.
-- Implemented keypoint extraction and CSV dataset generation.
-- Generated a labeled dataset containing 100 samples in the provided March dataset.
+Place `yolov8n-pose.pt` in `Models/`. Once `Models/pose_classifier.joblib` is available, run recognition.
 
-**Classes:** Sitting, Standing
+```powershell
+.\.venv\Scripts\python.exe recognize_pose.py --source 1
+```
 
-### [April: Neck Movement Dataset](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/4%28April%29)
+Set `--source` to your camera index or a video or image path. Use `--debug` to show the detected keypoint count and top pose candidates when available. Press `Esc` or `q` to close the preview.
 
-- Changed the dataset configuration from basic postures to neck movements.
-- Expanded the number of movement classes from 2 to 5.
-- Increased the configurable image collection limit to 200 per execution.
+## 6. Problem Solved & Evaluation
 
-**Classes:** Facing Forward, Looking Up, Looking Down, Looking Left, Looking Right
+The first version used torso length to scale the coordinates when the hips were visible and shoulder width when they were missing. The switch could change the upper-body features while the person held the same pose. Using shoulder width consistently and training on samples with missing lower-body keypoints addressed this case.
 
-### [May: Shoulder Movement Dataset](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/5%28May%29)
+| Evaluation | Result |
+| --- | --- |
+| Data split | 1,890 training frames, 540 validation frames, and a 270-frame gap |
+| Correct predictions using original validation keypoints | 540/540 |
+| `Arms Overhead` correctly recognized with the lower-body keypoints masked | 0/40 before → 40/40 after |
 
-- Changed the dataset configuration to shoulder movement categories.
-- Defined 4 posture labels for shoulder movement data collection.
-- Maintained the configurable image collection limit of 200 per execution.
+The occlusion comparison used the same held-out keypoints and a classification score threshold of 0.55 for both versions. The training and validation frames came from the same recordings. Performance with new users and camera setups still needs independent evaluation.
 
-**Classes:** Front Position, Upward Position, Forward Position, Downward Position
+## 7. Demo Video
 
-### [June: Arm Movement Dataset](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/6%28June%29)
-
-- Changed the dataset configuration to arm movement categories.
-- Defined 2 posture labels for raised and lowered arm positions.
-- Reused the existing pose estimation and dataset generation pipeline.
-
-**Classes:** Raised Arm Position, Lowered Arm Position
-
-### [July: Oblique Posture Dataset](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/7%28July%29) 
-
-- Changed the dataset configuration to left and right oblique postures.
-- Defined 2 posture labels for left and right oblique positions.
-- Maintained the existing data collection and labeling process.
-
-**Classes:** Right Oblique Posture, Left Oblique Posture
-
-## 4. Dataset Construction Pipeline
-
-The same core data processing pipeline was used throughout the project.
-
-1. **Pose Detection**
-   - Capture video frames using OpenCV.
-   - Detect human poses using the pre-trained YOLOv8n-pose model.
-   - Extract 17 body keypoints.
-
-2. **Keypoint Extraction**
-   - Extract normalized X and Y coordinates.
-   - Store keypoint coordinates as `x0, y0, ..., x16, y16`.
-
-3. **Data Collection**
-   - Save original images from webcam frames.
-   - Store image filenames and keypoint coordinates in `keypoints.csv`.
-   - Apply the configurable image collection limit.
-
-4. **Data Labeling**
-   - Organize collected images into posture-specific folders.
-   - Assign movement labels based on image filenames and folder locations.
-   - Exclude samples without corresponding labels.
-
-5. **Dataset Generation**
-   - Combine keypoint coordinates with movement labels.
-   - Generate the final structured dataset using Pandas.
-   - Export labeled data to `dataset.csv`.
-
-## 5. Dataset Structure & Project Files
-
-### Dataset Structure
-
-Two CSV files are used in the dataset construction process.
-
-| File | Columns | Description |
-|---|---|---|
-| `keypoints.csv` | 35 | Image filename and 34 coordinate values from 17 body keypoints |
-| `dataset.csv` | 36 | Keypoint data with an additional movement label |
-
-### keypoints.csv
-
-- `image_name`: Original image filename
-- `x0, y0, ..., x16, y16`: Normalized X and Y coordinates of 17 body keypoints
-
-### dataset.csv
-
-- `image_name`: Original image filename
-- `x0, y0, ..., x16, y16`: Normalized body keypoint coordinates
-- `label`: Corresponding rehabilitation movement label
-
-### Main Project Files
-
-- **1.2D_Pose_Estimation_test.py**
-  - Tests human pose estimation using a video file.
-  - Visualizes detected body keypoints and skeleton connections.
-
-- **2.2D_Pose_Save.py**
-  - Captures webcam frames and extracts body keypoints.
-  - Saves original images and normalized coordinates to CSV.
-
-- **3.2D_Pose_Dataset_Save.py**
-  - Assigns posture labels based on classified image folders.
-  - Generates the final labeled dataset.
-
-- **config.json**
-  - Defines movement categories and image collection limits.
-  - Allows the data collection pipeline to be reused for different exercise categories.
-
-- **Models/yolov8n-pose.pt**
-  - Pre-trained YOLOv8n pose estimation model.
-
-## 6. Project Outcomes
-
-- Extended pose estimation and dataset processing techniques from the previous [Human Pose Estimation Project](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03) to rehabilitation exercise data collection.
-- Developed a reusable 2D human pose data collection pipeline using YOLOv8n-pose.
-- Implemented extraction and CSV storage of 17 body keypoints.
-- Constructed a dataset generation process combining normalized coordinates and movement labels.
-- Configured 15 movement labels across 5 monthly dataset configurations.
-- Adapted the existing pipeline to different rehabilitation exercise categories without requiring a new pose estimation model.
-- Organized monthly implementation details and generated images into separate GitHub branches.
-- Prepared structured pose datasets for future rehabilitation exercise classification model development.
-
-**Project Scope:** This project focuses on pose data collection, labeling, and dataset construction. Training and evaluating a rehabilitation exercise classification model are outside the scope of the documented implementation.
-
-## 7. Generated Images
-
-The generated images and monthly dataset results are documented in the corresponding GitHub branches.
-
-### March: Basic Postures
-
-[View March Project & Images](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/3%28March%29)
-
-### April: Neck Movements
-
-[View April Project & Images](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/4%28April%29)
-
-### May: Shoulder Movements
-
-[View May Project & Images](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/5%28May%29)
-
-### June: Arm Movements
-
-[View June Project & Images](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/6%28June%29)
-
-### July: Oblique Postures
-
-[View July Project & Images](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/7%28July%29)
+[Watch real-time pose recognition on YouTube](https://www.youtube.com/watch?v=dA_wLsyu63g)
 
 </details>
 
 <details>
 <summary>KOR (한국어 버전)</summary>
 
-# 편마비 환자 재활 운동을 위한 AI 기반 Pose Estimation 데이터셋 구축
-
-이 프로젝트는 편마비 환자의 재활 운동 동작을 향후 분류할 수 있도록 2D 인체 자세 데이터셋을 구축하는 프로젝트입니다.
-
-본 프로젝트는 이전에 진행했던 [**Human Pose Estimation 프로젝트**](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03)를 기반으로 개발했습니다. 해당 프로젝트에서는 YOLOv8 Pose와 XGBoost를 활용하여 앉은 자세와 서 있는 자세를 분류하는 시스템을 구현했습니다.
-
-이 과정에서 학습한 자세 추정 및 데이터 처리 기술을 바탕으로, 인체 자세 추정 기술의 활용 범위를 재활 운동 데이터셋 구축으로 확장했습니다.
-
-2026년 3월부터 7월까지 사전 학습된 YOLOv8n-pose 모델을 활용하여 영상에서 인체 관절 좌표를 추출하고, 정규화된 좌표와 동작별 레이블이 포함된 CSV 데이터셋을 생성하는 파이프라인을 구축했습니다.
-
-5개월 동안 기본 자세, 목 운동, 어깨 운동, 팔 운동, 좌우 기울임 자세 등 다양한 재활 운동 동작을 대상으로 매월 데이터셋 설정을 변경하여 작업을 수행했습니다.
+# 편마비 재활 운동을 위한 실시간 자세 인식
 
 ## 1. 프로젝트 개요
 
-- **진행 기간:** 2026년 3월 ~ 2026년 7월 (5개월)
-- **담당 역할:** 자세 추정 및 데이터셋 구축
-- **목적:** 향후 재활 운동 동작 분류를 위한 구조화된 인체 자세 데이터셋 구축
-- **사용 기술:** Python, YOLOv8n-pose, OpenCV, Pandas, Tkinter, JSON, CSV
-- **사용 모델:** YOLOv8n-pose (사전 학습 모델)
-- **데이터셋 구성:** 5개 월별 설정에 걸쳐 총 15개 동작 레이블 정의
-- **기반 프로젝트:** [Human Pose Estimation: Sitting & Standing Classification](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03)
+웹캠·동영상·이미지에서 **15가지 자세**를 인식하는 프로그램을 구현했습니다. YOLOv8n-pose로 사람마다 신체 관절 17개를 검출하고, Random Forest 분류기로 자세를 예측합니다. 웹캠 화면에는 스켈레톤과 `Arms Overhead`, `Looking Left` 같은 자세 이름이 표시됩니다.
 
-### 프로젝트 개발 배경 및 확장 과정
+분류기는 2026년 3~7월에 수집한 데이터를 통합해 학습했습니다. 각 월의 데이터 수집 과정은 [프로젝트 메인 README](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/main)에서 확인할 수 있습니다.
 
-본 프로젝트는 이전에 진행한 Human Pose Estimation 프로젝트에서 습득한 기술과 구현 경험을 바탕으로 개발했습니다.
+## 2. 사용 기술 및 처리 흐름
 
-기존 프로젝트에서 구현한 내용은 다음과 같습니다.
+| 구분 | 사용 기술 |
+| --- | --- |
+| 신체 관절 검출 | Ultralytics YOLOv8n-pose |
+| 데이터 처리 및 특징 추출 | pandas, NumPy |
+| 자세 분류 | scikit-learn Random Forest |
+| 모델 저장 | Joblib |
+| 영상 입력 및 시각화 | OpenCV |
 
-- YOLOv8 Pose를 활용한 실시간 인체 자세 추정
-- 웹캠 영상에서 17개 인체 관절 키포인트 추출
-- 앉은 자세와 서 있는 자세의 레이블 데이터셋 구축
-- XGBoost 분류 모델 학습을 통한 자세 분류
-- 실시간 자세 분류 결과 시각화
+```text
+모델 학습    월별 CSV → 시간순 분할 → 특징 추출 및 학습 데이터 증강
+             → Random Forest 학습 → 분류기 저장
 
-이후 해당 기술을 재활 운동 데이터셋 구축에 활용할 수 있도록 확장했습니다.
+자세 인식    웹캠 / 동영상 / 이미지 → YOLOv8n-pose → 공통 관절 전처리
+             → 저장한 분류기로 예측 → 자세 이름과 스켈레톤 표시
+```
 
-- 인체 자세 추정 기술을 재활 운동 데이터 수집에 적용
-- 관절 키포인트 추출 및 레이블 데이터셋 구축 방식 활용
-- `config.json`을 활용한 다양한 재활 운동 동작 클래스 설정
-- 향후 재활 운동 동작 분류 모델 학습을 위한 구조화된 CSV 데이터셋 생성
+## 3. 데이터셋 및 모델 학습
 
+앉기·서기, 목·어깨·팔 운동, 몸통 좌우 기울이기 등 15가지 자세의 **레이블 프레임 2,700개**를 사용했습니다. 각 `dataset.csv`에는 `image_name`, 관절 좌표 34개(`x0`, `y0`, …, `x16`, `y16`), `label`이 들어 있습니다. 학습 스크립트는 `person_YYYYMMDD_HHMMSS_mmm.jpg` 형태의 파일명에서 촬영 시각을 읽습니다.
 
-## 2. 주요 담당 업무
+각 원본 CSV에서 자세별로 시간순 앞쪽 70%를 학습에, 뒤쪽 20%를 검증에 사용했습니다. 연속 프레임이 분할 경계에서 바로 맞닿는 것을 줄이기 위해 중간 10%는 제외했습니다.
 
-### 자세 추정 (Pose Estimation)
-- 사전 학습된 YOLOv8n-pose 모델을 활용한 2D 인체 자세 추정 구현
-- 영상 프레임에서 17개 인체 관절 키포인트 추출
-- OpenCV를 활용한 관절 좌표 및 스켈레톤 시각화
-- 웹캠 기반 자세 데이터 수집 기능 구현
+학습과 인식에는 같은 전처리를 적용했습니다. 양쪽 어깨가 보이면 어깨의 중점을 원점으로 삼고 어깨 사이 거리로 좌표를 정규화합니다. 상대 좌표 34개와 관절 검출 여부 17개를 합쳐 **51개 특징**을 만들었습니다. 학습에는 하체 관절 누락과 작은 좌표 오차를 모사한 샘플도 추가했습니다.
 
-### 데이터 수집 (Data Collection)
-- 17개 관절 키포인트의 정규화된 X, Y 좌표 추출
-- 영상 프레임을 3프레임마다 처리
-- 객체 탐지 신뢰도 0.75 초과 조건 적용
-- 원본 이미지와 해당 관절 좌표 저장
-- `config.json`을 활용한 이미지 수집 목표 개수 설정
+## 4. 주요 프로젝트 파일
 
-### 데이터셋 구축 (Dataset Construction)
-- 수집한 이미지를 자세별 폴더로 분류
-- 이미지 파일명과 폴더 위치를 기준으로 동작 레이블 부여
-- 정규화된 관절 좌표와 해당 동작 레이블 결합
-- Pandas를 활용한 구조화된 CSV 데이터셋 생성
-- 재활 운동 동작별 데이터 수집 설정 변경 및 적용
+| 파일 | 역할 |
+| --- | --- |
+| `train_pose.py` | 데이터셋 검증, 분류기 학습, 모델과 평가 결과 저장 |
+| `recognize_pose.py` | 자세 인식 및 화면 표시, 결과 이미지·영상과 JSONL 저장 |
+| `requirements-pose.txt` | Windows의 Python 3.13.5 환경에서 학습과 이미지 인식에 사용한 패키지 버전 지정 |
+| `pose_common.py` | 두 파이썬 스크립트가 함께 사용하는 관절 좌표 전처리 |
+| `config.json` | 학습에 사용할 자세 레이블 정의 |
+| `Models/yolov8n-pose.pt` | 관절 검출에 필요한 사전 학습 모델 가중치 |
+| `Models/pose_classifier.joblib` | `train_pose.py`에서 생성하는 자세 분류기 |
 
-## 3. 월별 프로젝트 진행 내용
+## 5. 실행 방법
 
-프로젝트는 총 5개의 월별 GitHub 브랜치로 구분하여 관리했습니다.
+`pose_common.py`를 두 스크립트와 같은 폴더에 둡니다. 재학습하려면 프로젝트 루트에 `config.json`을 두고 아래 예시 CSV 경로를 실제 데이터 위치로 바꿉니다.
 
-| 진행 기간 | 운동 유형 | 동작 클래스 |
-|---|---|---|
-| 2026년 3월 | 기본 자세 | 2개 |
-| 2026년 4월 | 목 운동 | 5개 |
-| 2026년 5월 | 어깨 운동 | 4개 |
-| 2026년 6월 | 팔 운동 | 2개 |
-| 2026년 7월 | 좌우 기울임 자세 | 2개 |
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-pose.txt
+.\.venv\Scripts\python.exe train_pose.py --data data/03/dataset.csv data/04/dataset.csv data/05/dataset.csv data/06/dataset.csv data/07/dataset.csv
+```
 
-### [3월: 기본 자세 데이터셋 구축](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/3%28March%29)
+`Models/`에 `yolov8n-pose.pt`를 둡니다. 학습된 `Models/pose_classifier.joblib`이 준비되면 인식을 실행할 수 있습니다.
 
-- 재활 운동용 초기 자세 추정 및 데이터 수집 파이프라인 구현
-- 앉기(`sitting`)와 서 있기(`standing`) 동작 클래스 정의
-- 관절 키포인트 추출 및 CSV 데이터셋 생성 기능 구현
-- 첨부된 3월 데이터 기준 총 100개 샘플로 구성된 레이블 데이터셋 생성
+```powershell
+.\.venv\Scripts\python.exe recognize_pose.py --source 1
+```
 
-**동작 분류:** 앉기, 서 있기
+`--source`에는 사용할 카메라 번호나 동영상·이미지 경로를 지정합니다. `--debug`로 검출된 관절 수와 분류 가능한 경우의 상위 자세 후보를 확인할 수 있습니다. 화면은 `Esc` 또는 `q`로 닫습니다.
 
-### [4월: 목 운동 데이터셋 구축](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/4%28April%29)
+## 6. 문제 해결 및 평가 결과
 
-- 기본 자세에서 목 운동 동작으로 데이터셋 설정 변경
-- 동작 클래스를 기존 2개에서 5개로 확장
-- 프로그램 1회 실행 시 이미지 수집 목표 개수를 200개로 변경
+초기 버전은 엉덩이 관절이 보일 때 몸통 길이로, 보이지 않을 때 어깨 너비로 좌표를 정규화했습니다. 하체가 화면 밖으로 나가면 상체 자세가 같아도 분류기에 들어가는 특징값이 달라졌습니다. 양쪽 어깨가 보일 때는 어깨 너비를 일관되게 사용하고, 하체 관절이 누락된 샘플을 학습에 포함해 이 문제를 개선했습니다.
 
-**동작 분류:** 정면, 위쪽, 아래쪽, 왼쪽, 오른쪽
+| 평가 항목 | 결과 |
+| --- | --- |
+| 데이터 분할 | 학습 1,890개, 검증 540개, 경계에서 제외한 프레임 270개 |
+| 원본 검증 관절 좌표 정분류 | 540/540개 |
+| 하체 관절을 가렸을 때 `Arms Overhead` 정분류 및 인식 | 개선 전 0/40개 → 개선 후 40/40개 |
 
-### [5월: 어깨 운동 데이터셋 구축](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/5%28May%29)
+가림 실험에는 두 모델 모두 동일한 검증 좌표와 분류 점수 기준 0.55를 사용했습니다. 학습과 검증 프레임은 같은 촬영에서 가져왔으므로 새 사용자와 다른 카메라 환경에서의 성능은 별도 데이터로 확인해야 합니다.
 
-- 목 운동에서 어깨 운동 동작으로 데이터셋 설정 변경
-- 어깨 운동 관련 4개 자세 레이블 정의
-- 이미지 수집 목표 개수 200개 유지
+## 7. 시연 영상
 
-**동작 분류:** 정면 자세, 위쪽 자세, 전방 자세, 아래쪽 자세
-
-### [6월: 팔 운동 데이터셋 구축](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/6%28June%29)
-
-- 어깨 운동에서 팔 운동 동작으로 데이터셋 설정 변경
-- 팔 올리기와 팔 내리기 2개 자세 레이블 정의
-- 기존 자세 추정 및 데이터셋 생성 파이프라인 재사용
-
-**동작 분류:** 팔 올리기, 팔 내리기
-
-### [7월: 좌우 기울임 자세 데이터셋 구축](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/7%28July%29)
-
-- 팔 운동에서 좌우 기울임 자세로 데이터셋 설정 변경
-- 우측 및 좌측 기울임 자세 2개 레이블 정의
-- 기존 데이터 수집 및 레이블링 과정 유지
-
-**동작 분류:** 우측 기울임 자세, 좌측 기울임 자세
-
-## 4. 데이터셋 구축 파이프라인
-
-프로젝트 기간 동안 동일한 핵심 데이터 처리 파이프라인을 활용했습니다.
-
-1. **자세 탐지 (Pose Detection)**
-   - OpenCV를 활용한 영상 프레임 입력
-   - 사전 학습된 YOLOv8n-pose 모델을 이용한 인체 자세 탐지
-   - 영상 프레임에서 17개 관절 키포인트 추출
-
-2. **키포인트 추출 (Keypoint Extraction)**
-   - 정규화된 X, Y 좌표 추출
-   - `x0, y0, ..., x16, y16` 형태로 관절 좌표 구성
-
-3. **데이터 수집 (Data Collection)**
-   - 웹캠에서 원본 이미지 수집
-   - 이미지 파일명과 관절 좌표를 `keypoints.csv`에 저장
-   - 설정된 이미지 수집 목표 개수 적용
-
-4. **데이터 레이블링 (Data Labeling)**
-   - 수집한 이미지를 동작별 폴더로 분류
-   - 이미지 파일명과 폴더 위치를 기준으로 동작 레이블 부여
-   - 레이블이 없는 데이터 제외
-
-5. **데이터셋 생성 (Dataset Generation)**
-   - 정규화된 관절 좌표와 동작 레이블 결합
-   - Pandas를 활용한 구조화된 학습용 데이터셋 생성
-   - 최종 레이블 데이터를 `dataset.csv`로 저장
-
-## 5. 데이터셋 구조 및 프로젝트 파일
-
-### 데이터셋 구조
-
-데이터셋 구축 과정에서 두 종류의 CSV 파일을 사용했습니다.
-
-| 파일명 | 열 개수 | 구성 |
-|---|---|---|
-| `keypoints.csv` | 35개 | 이미지 파일명과 17개 관절의 좌표 34개 |
-| `dataset.csv` | 36개 | 관절 좌표 데이터와 동작 레이블 |
-
-### keypoints.csv
-
-- `image_name`: 원본 이미지 파일명
-- `x0, y0, ..., x16, y16`: 17개 관절의 정규화된 X, Y 좌표
-
-### dataset.csv
-
-- `image_name`: 원본 이미지 파일명
-- `x0, y0, ..., x16, y16`: 정규화된 관절 좌표
-- `label`: 해당 재활 운동 동작의 분류 레이블
-
-### 주요 프로젝트 파일
-
-- **1.2D_Pose_Estimation_test.py**
-  - 동영상 파일을 이용한 인체 자세 추정 기능 테스트
-  - 관절 키포인트 및 스켈레톤 시각화
-
-- **2.2D_Pose_Save.py**
-  - 웹캠 영상에서 인체 관절 키포인트 추출
-  - 원본 이미지 및 정규화된 관절 좌표를 CSV로 저장
-
-- **3.2D_Pose_Dataset_Save.py**
-  - 분류된 이미지 폴더를 기준으로 동작 레이블 부여
-  - 최종 레이블 데이터셋 생성
-
-- **config.json**
-  - 운동 동작 클래스 및 이미지 수집 목표 개수 설정
-  - 월별 운동 유형 변경 시 기존 데이터 수집 프로그램 재사용 지원
-
-- **Models/yolov8n-pose.pt**
-  - 사전 학습된 YOLOv8n 자세 추정 모델
-
-## 6. 프로젝트 성과
-
-- 기존 [Human Pose Estimation 프로젝트](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03)에서 학습한 자세 추정 및 데이터 처리 기술을 재활 운동 데이터 수집에 활용
-- YOLOv8n-pose를 활용한 재사용 가능한 2D 인체 자세 데이터 수집 파이프라인 구현
-- 17개 관절 키포인트 추출 및 CSV 저장 자동화
-- 정규화된 관절 좌표와 동작 레이블을 결합하는 데이터셋 생성 과정 구현
-- 5개월에 걸쳐 총 15개 동작 레이블을 대상으로 데이터셋 설정 구성
-- 자세 추정 모델을 새로 개발하지 않고 기존 파이프라인을 다양한 재활 운동 동작에 적용
-- 월별 구현 내용과 생성 사진을 GitHub 브랜치별로 구분하여 관리
-- 향후 재활 운동 동작 분류 모델 개발에 활용할 수 있는 구조화된 자세 데이터셋 준비
-
-**구현 범위:** 본 프로젝트는 자세 데이터 수집, 레이블링 및 데이터셋 구축에 중점을 두었습니다. 재활 운동 분류 모델의 학습 및 성능 평가는 현재 정리된 구현 범위에 포함되지 않습니다.
-
-## 7. 생성 사진
-
-각 월에 생성한 자세 추정 이미지와 데이터셋 구축 결과는 해당 GitHub 브랜치에서 확인할 수 있습니다.
-
-### 3월: 기본 자세
-
-[3월 프로젝트 및 생성 사진 보기](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/3%28March%29)
-
-### 4월: 목 운동
-
-[4월 프로젝트 및 생성 사진 보기](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/4%28April%29)
-
-### 5월: 어깨 운동
-
-[5월 프로젝트 및 생성 사진 보기](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/5%28May%29)
-
-### 6월: 팔 운동
-
-[6월 프로젝트 및 생성 사진 보기](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/6%28June%29)
-
-### 7월: 좌우 기울임 자세
-
-[7월 프로젝트 및 생성 사진 보기](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/7%28July%29)
+[YouTube에서 실시간 자세 인식 시연 보기](https://www.youtube.com/watch?v=dA_wLsyu63g)
 
 </details>
