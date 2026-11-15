@@ -1,0 +1,9 @@
+# Python 3.13.5 / Windows 환경에서 학습 및 이미지 인식을 확인한 버전
+numpy==2.3.2
+pandas==2.3.1
+scikit-learn==1.7.1
+joblib==1.5.1
+opencv-python==4.14.0.94
+ultralytics==8.4.197
+torch==2.15.0
+torchvision==0.29.2
