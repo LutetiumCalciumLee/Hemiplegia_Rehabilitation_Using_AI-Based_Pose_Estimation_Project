@@ -45,7 +45,7 @@ The project builds on an earlier webcam application that used YOLOv8 Pose and XG
 
 </details>
 
-<details>
+<details open>
 <summary>KOR (한국어 버전)</summary>
 
 # 편마비 재활 운동을 위한 AI 기반 자세 추정 및 인식
