@@ -127,7 +127,7 @@ In March 2026, I developed a data collection pipeline using a pre-trained YOLOv8
 
 </details>
 
-<details>
+<details open>
 <summary>KOR (한국어 버전)</summary>
 
 # 편마비 환자 재활 운동을 위한 2D Pose Estimation 데이터셋 구축
