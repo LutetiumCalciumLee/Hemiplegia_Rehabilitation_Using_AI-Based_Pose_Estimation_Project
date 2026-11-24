@@ -117,7 +117,7 @@ Two oblique posture categories were defined in `config.json`.
 
 </details>
 
-<details>
+<details open>
 <summary>KOR (한국어 버전)</summary>
 
 # 편마비 환자 재활 운동을 위한 2D Pose Estimation 데이터셋 구축 (2026년 7월)
