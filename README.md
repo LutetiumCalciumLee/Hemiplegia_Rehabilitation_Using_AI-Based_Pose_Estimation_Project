@@ -83,7 +83,7 @@ The occlusion comparison used the same held-out keypoints and a classification s
 
 </details>
 
-<details>
+<details open>
 <summary>KOR (한국어 버전)</summary>
 
 # 편마비 재활 운동을 위한 실시간 자세 인식
