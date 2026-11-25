@@ -35,10 +35,6 @@ Collected **400 labeled frames** of left and right trunk bends.
 
 Combined the five monthly datasets and trained a **Random Forest classifier** for all 15 poses. During recognition, YOLOv8n-pose extracts body keypoints, the classifier predicts the pose, and OpenCV displays the skeleton and pose name. The application accepts webcam, video, and image inputs.
 
-### Demo Video
-
-[Watch the real-time pose recognition demo on YouTube](https://www.youtube.com/watch?v=dA_wLsyu63g)
-
 ## Related Project
 
 The project builds on an earlier webcam application that used YOLOv8 Pose and XGBoost to distinguish sitting from standing. [Human Pose Estimation — Sitting & Standing Classification](https://github.com/LutetiumCalciumLee/Studying_Computer_Vision/tree/Project_03)
@@ -81,10 +77,6 @@ The project builds on an earlier webcam application that used YOLOv8 Pose and XG
 ### [6. 실시간 자세 인식 프로그램](https://github.com/LutetiumCalciumLee/Hemiplegia_Rehabilitation_Using_AI-Based_Pose_Estimation_Project/tree/Pose_Recognition)
 
 5개월치 데이터셋을 통합해 15가지 자세를 구분하는 **Random Forest 분류기**를 학습했습니다. 인식 단계에서는 YOLOv8n-pose로 관절을 검출하고, 분류기로 자세를 예측한 뒤 OpenCV 화면에 스켈레톤과 자세 이름을 표시합니다. 웹캠, 동영상, 이미지를 입력으로 사용할 수 있습니다.
-
-### 시연 영상
-
-[YouTube에서 실시간 자세 인식 시연 보기](https://www.youtube.com/watch?v=dA_wLsyu63g)
 
 ## 관련 프로젝트
 
